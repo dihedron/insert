@@ -59,24 +59,19 @@ func Replace(cmd *cobra.Command, args []string) {
 	log.Debugf("Matching against %q", args[0])
 	re := regexp.MustCompile(args[0])
 
-	re2 := regexp.MustCompile(`(?:\{(\d+)\})`)
+	placeholders := regexp.MustCompile(`(?:\{(\d+)\})`)
 
 	scanner := bufio.NewScanner(input)
 	for scanner.Scan() {
 		if re.MatchString(scanner.Text()) {
 			log.Debugf("Input text %q matches pattern", scanner.Text())
-			if re2.MatchString(args[2]) {
+			if placeholders.MatchString(args[2]) {
 				log.Debugf("Replacement text has bindings")
-				variables := re2.FindAllStringSubmatchIndex(args[2], -1)
-				for _, variables2 := range variables {
-					index, _ := strconv.Atoi(args[2][variables2[2]:variables2[3]])
-					log.Debugf("Match: %q (%d) from %d to %d", args[2][variables2[0]:variables2[1]], index, variables2[0], variables2[1])
-					for i, variable := range variables2 {
-						log.Debugf(" [%d] => %v", i, variable)
-					}
+				for _, indexes := range placeholders.FindAllStringSubmatchIndex(args[2], -1) {
+					index, _ := strconv.Atoi(args[2][indexes[2]:indexes[3]])
+					log.Debugf("Match: %q (%d) from %d to %d", args[2][indexes[0]:indexes[1]], index, indexes[0], indexes[1])
 				}
 				//matches := re.FindStringSubmatch(scanner.Text())
-
 			} else {
 				log.Debugf("Replacing text %q with %q\n", scanner.Text(), args[2])
 				fmt.Fprintf(output, "%s\n", args[2])

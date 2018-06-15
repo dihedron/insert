@@ -67,6 +67,9 @@ func Replace(cmd *cobra.Command, args []string) {
 			log.Debugf("Input text %q matches pattern", scanner.Text())
 			if placeholders.MatchString(args[2]) {
 				log.Debugf("Replacement text has bindings")
+				// TODO: find all capturing groups in scanner.Text(), then use them to
+				// bind the replacement arguments; this processing is common to all
+				// matching methods so it should be moved to its own method.
 				for _, indexes := range placeholders.FindAllStringSubmatchIndex(args[2], -1) {
 					index, _ := strconv.Atoi(args[2][indexes[2]:indexes[3]])
 					log.Debugf("Match: %q (%d) from %d to %d", args[2][indexes[0]:indexes[1]], index, indexes[0], indexes[1])

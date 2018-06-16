@@ -2,7 +2,7 @@ package cmd
 
 import (
 	log "github.com/dihedron/go-log"
-	"github.com/dihedron/zed/text"
+	"github.com/dihedron/put/text"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -12,10 +12,10 @@ var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "zed",
+	Use:   "put",
 	Short: "A simple stream editor with readability in mind",
 	Long: `
-	zed is a simple stream editor with a limied set of functionalities
+	put is a simple stream editor with a limited set of functionalities
 	to manipulate text files one line at a time performing the most basic
 	pattern matching and operations such as insertions and replacements.`,
 	Args: cobra.NoArgs,

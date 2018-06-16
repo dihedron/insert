@@ -8,8 +8,9 @@
 
 ```bash
 $ > cat infile.txt | 
-        zed replace "^a\s*line$" with "another line" --everywhere | 
-        zed after "^yet\s+another\s*line$" insert "some text" | 
-        zed before "^and this is the (last)$" insert "${1} but not least" --once 
+        put "another line" where "^a\s*line$" --everywhere | 
+        put "some text" after "^yet\s+another\s*line$" | 
+        put "${1} but not least" before "^and this is the (last)$" --once 
+        put none where "^a\s+line\s*to drop$"  
         > out.txt 
 ```

@@ -5,11 +5,16 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"strconv"
 
 	log "github.com/dihedron/go-log"
 	"github.com/spf13/cobra"
 )
+
+func Process(cmd *cobra.Command, args []string) {
+
+	//	pattern := args
+
+}
 
 func Copy(cmd *cobra.Command, args []string) {
 
@@ -24,8 +29,8 @@ func Copy(cmd *cobra.Command, args []string) {
 }
 
 func Replace(cmd *cobra.Command, args []string) {
-	if args[1] != "with" {
-		log.Fatalf("Error: 'with' clause was not specified")
+	if args[1] != "where" && args[1] != "wherever" {
+		log.Fatalf("Error: 'where' clause was not specified")
 	}
 
 	// if a filename argument is provided, read from file, otherwise it's STDIN
@@ -56,8 +61,8 @@ func Replace(cmd *cobra.Command, args []string) {
 		output = os.Stdout
 	}
 
-	log.Debugf("Matching against %q", args[0])
-	re := regexp.MustCompile(args[0])
+	log.Debugf("Matching against %q", args[2])
+	re := regexp.MustCompile(args[2])
 
 	// placeholders := regexp.MustCompile(`(?:\{(\d+)\})`)
 
@@ -65,7 +70,7 @@ func Replace(cmd *cobra.Command, args []string) {
 	for scanner.Scan() {
 		if re.MatchString(scanner.Text()) {
 			log.Debugf("Input text %q matches pattern", scanner.Text())
-			line := processLine(scanner.Text(), args[2], re)
+			line := "" //processLine(scanner.Text(), args[0], re)
 			fmt.Fprintf(output, "%s\n", line)
 
 			// if placeholders.MatchString(args[2]) {
@@ -90,36 +95,5 @@ func Replace(cmd *cobra.Command, args []string) {
 
 	if err := scanner.Err(); err != nil {
 		log.Fatalf("Error reading text: %v", err)
-	}
-}
-
-var placeholders = regexp.MustCompile(`(?:\{(\d+)\})`)
-
-func processLine(original string, replacement string, re *regexp.Regexp) string {
-	if placeholders.MatchString(replacement) {
-		log.Debugf("Replacement text requires binding\n")
-		// TODO: find all capturing groups in scanner.Text(), then use them to
-		// bind the replacement arguments; this processing is common to all
-		// matching methods so it should be moved to its own method.
-		matches := re.FindStringSubmatch(original)
-		if len(matches) == 0 {
-			log.Fatalf("Invalid number of bindings: %d\n", len(matches))
-		}
-
-		for i, match := range matches {
-			log.Debugf("Match[%d]: %q\n", i, match)
-		}
-
-		// lengthening := 0
-		for _, indexes := range placeholders.FindAllStringSubmatchIndex(replacement, -1) {
-			index, _ := strconv.Atoi(replacement[indexes[2]:indexes[3]])
-			log.Debugf("Match: %q (%d) from %d to %d", replacement[indexes[0]:indexes[1]], index, indexes[0], indexes[1])
-		}
-		//matches := re.FindStringSubmatch(scanner.Text())
-
-		return ""
-	} else {
-		log.Debugf("Replacing text %q with %q\n", original, replacement)
-		return replacement
 	}
 }

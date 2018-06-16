@@ -9,7 +9,7 @@
 ```bash
 $ > cat infile.txt | 
         put "some replacement text" where "^a\s*line$" | 
-        put "{1} but not least" before "^and this is the (last)$" --once |
+        put --once "{1} but not least" before "^and this is the (last)$" |
         put "some text" after "^yet\s+another\s*line$" |         
         put - where "^a\s+line\s*to drop$"  
         > out.txt 

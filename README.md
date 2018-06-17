@@ -8,18 +8,18 @@
 
 ```bash
 $ > cat infile.txt | 
-        put "another line" where "^a\s*line$" --everywhere | 
-        put "{1} but not least" before "^and this is the (last)$" --once 
+        put "some replacement text" where "^a\s*line$" | 
+        put --once "{1} but not least" before "^and this is the (last)$" |
         put "some text" after "^yet\s+another\s*line$" |         
         put - where "^a\s+line\s*to drop$"  
         > out.txt 
 ```
 
 It provides 4 types of operations:
-1. replace lines matching a pattern with other text;
-2. add a line before each line matching a pattern;
-3. add a line after each line matching a pattern;
-4. drop lines matching a pattern.
+1. replace lines matching a pattern with other text (```where``` clause with replacement text);
+2. add a line before each line matching a pattern (```before``` clause);
+3. add a line after each line matching a pattern (```after``` clause);
+4. drop lines matching a pattern (```where``` clause with ```-``` as replacement text).
 
 The ```--once``` flags indicates that the operaton should occur only on the first occurrence of the match; if omitted, each matching line is "edited" as instructed.
 

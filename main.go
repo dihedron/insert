@@ -8,12 +8,24 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 
 	log "github.com/dihedron/go-log"
 )
 
 func init() {
-	log.SetLevel(log.DBG)
+	switch strings.ToLower(os.Getenv("PUT_DEBUG")) {
+	case "debug", "dbg", "d":
+		log.SetLevel(log.DBG)
+	case "informational", "information", "info", "inf", "i":
+		log.SetLevel(log.INF)
+	case "warning", "warn", "wrn", "w":
+		log.SetLevel(log.WRN)
+	case "error", "err", "e":
+		log.SetLevel(log.ERR)
+	default:
+		log.SetLevel(log.NUL)
+	}
 	log.SetStream(os.Stderr, true)
 	log.SetTimeFormat("15:04:05.000")
 	log.SetPrintCallerInfo(true)
@@ -45,6 +57,23 @@ const (
 	OperationInvalid
 )
 
+// String returns an operation in human-readable form.
+func (op operation) String() string {
+	switch op {
+	case OperationReplace:
+		return "<replace> (" + strconv.Itoa(int(op)) + ")"
+	case OperationPrepend:
+		return "<prepend> (" + strconv.Itoa(int(op)) + ")"
+	case OperationAppend:
+		return "<append> (" + strconv.Itoa(int(op)) + ")"
+	case OperationDelete:
+		return "<delete> (" + strconv.Itoa(int(op)) + ")"
+	case OperationInvalid:
+		return "<invalid> (" + strconv.Itoa(int(op)) + ")"
+	}
+	return ""
+}
+
 // processStream is the actual workhorse: it identifies input and output, then
 // reads in the input stream one line at a time and applies its pattern matching
 // line by line; matching lines are processed and written to the output stream.
@@ -67,7 +96,7 @@ func processStream(args []string, once bool) {
 	defer output.Close()
 
 	op := getOperation(args)
-	log.Debugf("Operation: %d", op)
+	log.Debugf("Operation: %v", op)
 
 	log.Debugf("Matching against %q", args[2])
 	re := regexp.MustCompile(args[2])
@@ -95,11 +124,9 @@ func processStream(args []string, once bool) {
 			fmt.Fprintf(output, "%s\n", scanner.Text())
 		}
 	}
-
 	if err := scanner.Err(); err != nil {
 		log.Fatalf("Error reading text: %v", err)
 	}
-
 }
 
 // getInput returns the input Reader to use; if a filename argument is provided,
@@ -165,7 +192,6 @@ func processLine(original string, replacement string, re *regexp.Regexp) string 
 
 		buffer := ""
 		cursor := 0
-		// lengthening := 0
 		for _, indexes := range anchors.FindAllStringSubmatchIndex(replacement, -1) {
 			index, _ := strconv.Atoi(replacement[indexes[2]:indexes[3]])
 			if index > len(bindings) {
@@ -176,13 +202,13 @@ func processLine(original string, replacement string, re *regexp.Regexp) string 
 				}
 				log.Fatalln(buffer.String())
 			}
-			log.Debugf("Match: %q (%d) from %d to %d", replacement[indexes[0]:indexes[1]], index, indexes[0], indexes[1])
+			log.Debugf("Binding {%d}: %q => %q (from index %d to %d)", index, replacement[indexes[0]:indexes[1]], bindings[index], indexes[0], indexes[1])
 			buffer = buffer + replacement[cursor:indexes[0]] + bindings[index]
 			cursor = indexes[1]
 			log.Debugf("Current temporary buffer: %q", buffer)
 		}
 		buffer = buffer + replacement[cursor:]
-		log.Debugf("Current temporary buffer: %q", buffer)
+		log.Debugf("Temporary buffer at end of line processing: %q", buffer)
 		return buffer
 	} else {
 		log.Debugf("Replacing text %q with %q\n", original, replacement)

@@ -2,6 +2,28 @@
 
 ```put``` is a stream editor with a limited subset of ```sed```'s functionalities exposed through a modern CLI; it is designed to be used as a shell filter, with readability in mind.
 
+## Installation
+
+To install ```put``` you need to compile it from sources; follow the [Golang](https.//www.golang.org) installation instructions, then clone this repository under your ```$GOPATH/src``` and compile it, as follows:
+
+```bash
+$ > cd $GOPATH/src
+$ > mkdir -p github.com/dihedron
+$ > cd github.com/dihedron
+$ > git clone https://github.com/dihedron/put.git
+$ > go install github.com/dihedron/put
+```
+
+If you added ```$GOPATH/bin``` to your ```$PATH```, the command will be readiliy available.
+
+The application can be compiled on all Golang-supported OSs, including most flavours of *nix and Windows (the latter I have not tested, though); it does not require configuration or INI files, libraries, DLLs or Registry keys and can be placed anywhere on your filesystem or on portable USB sticks.
+
+If you want to compress it to save space, you can safely use UPX to do it, like this:
+
+```bash
+$ > upx --brute $GOPATH/bin/put
+```
+
 ## Usage
 
 ```put``` is meant to be used like this:

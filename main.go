@@ -32,14 +32,21 @@ func main() {
 type operation int8
 
 const (
-	// OperationReplace replaces the matched line with the user provided text.
+	// OperationReplace replaces the matching line with the user provided text.
 	OperationReplace operation = iota
-	// P
+	// OperationPrepend inserts the user provided text before the matching line.
 	OperationPrepend
+	// OperationAppend inserts the user provided text after the matching line.
 	OperationAppend
+	// OperationDelete removes the matching line.
+	OperationDelete
+	// OperationInvalid means that the operation could not be recognised.
 	OperationInvalid
 )
 
+// processStream is the actual workhorse: it identifies input and output, then
+// reads in the input stream one line at a time and applies its pattern matching
+// line by line; matching lines are processed and written to the output stream.
 func processStream(args []string, once bool) {
 	log.Debugf("Apply only once: %t", once)
 	for i, arg := range args {
@@ -69,7 +76,17 @@ func processStream(args []string, once bool) {
 		if re.MatchString(scanner.Text()) {
 			log.Debugf("Input text %q matches pattern", scanner.Text())
 			line := processLine(scanner.Text(), args[0], re)
-			fmt.Fprintf(output, "%s\n", line)
+			switch op {
+			case OperationReplace:
+				fmt.Fprintf(output, "%s\n", line)
+			case OperationPrepend:
+				fmt.Fprintf(output, "%s\n", line)
+				fmt.Fprintf(output, "%s\n", scanner.Text())
+			case OperationAppend:
+				fmt.Fprintf(output, "%s\n", scanner.Text())
+				fmt.Fprintf(output, "%s\n", line)
+			case OperationDelete:
+			}
 
 			// if placeholders.MatchString(args[2]) {
 			// 	log.Debugf("Replacement text has bindings")
@@ -124,6 +141,9 @@ func getOutput(args []string) (*os.File, error) {
 // later on once the product is sufficiently stable.
 func getOperation(args []string) operation {
 	if args[1] == "where" || args[1] == "wherever" {
+		if args[0] == "-" {
+			return OperationDelete
+		}
 		return OperationReplace
 	}
 	if args[1] == "before" {

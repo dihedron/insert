@@ -25,6 +25,27 @@ The ```--once``` flags indicates that the operaton should occur only on the firs
 
 Replacement text can include substitution anchors, such as ```{1}``` above; it will be substituted with the value of the first capturing group in the pattern (the zero-th being the whole expression unless specified otherwise). 
 
+## Example
+
+As an example let's take an ```/etc/hosts```; say you want to add the host name on the ```localhost``` line (the one starting with ```127.0.0.1```) to prevent complaining by your ```sudo``` commands. The following sequence copies the current line to a comment (first invocation of ```put```), then replaces whatever is after the ```localhost``` word with the current hostname:
+
+```bash
+$ > cat hosts | 
+        put "# {0}" before "^(127\.0\.0\.1\s+localhost).*" | 
+        put "{1} $(hostname)" where "^(127\.0\.0\.1\s+localhost).*" 
+        > hosts2
+```
+
+## Debugging
+
+If you want to see what the command is doing internally, simply run it with the ```PUT_DEBUG``` environment variable set to one of ```debug```, ```info```, ```warning``` or ```error```, e.g. as follows:
+
+```bash
+$ > PUT_DEBUG=debug put [args] < /etc/hosts
+```
+
+This can be hepful if you need to see what are the available bindings for your regular expression (```{0}```, ```{1}```...) so you can debug it. 
+
 ## Suggestions and contributions
 
 ... are very welcome: please open an Issue to give your feedback or to request a pull.

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"flag"
 	"fmt"
 	"os"
@@ -156,10 +157,10 @@ func getOperation(args []string) operation {
 	return OperationInvalid
 }
 
-var placeholders = regexp.MustCompile(`(?:\{(\d+)\})`)
+var anchors = regexp.MustCompile(`(?:\{(\d+)\})`)
 
 func processLine(original string, replacement string, re *regexp.Regexp) string {
-	if placeholders.MatchString(replacement) {
+	if anchors.MatchString(replacement) {
 		log.Debugf("Replacement text requires binding\n")
 		// TODO: find all capturing groups in scanner.Text(), then use them to
 		// bind the replacement arguments; this processing is common to all
@@ -169,18 +170,33 @@ func processLine(original string, replacement string, re *regexp.Regexp) string 
 			log.Fatalf("Invalid number of bindings: %d\n", len(matches))
 		}
 
+		bindings := []string{}
 		for i, match := range matches {
-			log.Debugf("Match[%d]: %q\n", i, match)
+			log.Debugf("Match[%d] => %q\n", i, match)
+			bindings = append(bindings, match)
 		}
 
+		buffer := ""
+		cursor := 0
 		// lengthening := 0
-		for _, indexes := range placeholders.FindAllStringSubmatchIndex(replacement, -1) {
+		for _, indexes := range anchors.FindAllStringSubmatchIndex(replacement, -1) {
 			index, _ := strconv.Atoi(replacement[indexes[2]:indexes[3]])
+			if index > len(bindings) {
+				var buffer bytes.Buffer
+				buffer.WriteString(fmt.Sprintf("Invalid binding index %d, current binding values are:\n", index))
+				for i, binding := range bindings {
+					buffer.WriteString(fmt.Sprintf(" {%d} => %q\n", i, binding))
+				}
+				log.Fatalln(buffer.String())
+			}
 			log.Debugf("Match: %q (%d) from %d to %d", replacement[indexes[0]:indexes[1]], index, indexes[0], indexes[1])
+			buffer = buffer + replacement[cursor:indexes[0]] + bindings[index]
+			cursor = indexes[1]
+			log.Debugf("Current temporary buffer: %q", buffer)
 		}
-		//matches := re.FindStringSubmatch(scanner.Text())
-
-		return ""
+		buffer = buffer + replacement[cursor:]
+		log.Debugf("Current temporary buffer: %q", buffer)
+		return buffer
 	} else {
 		log.Debugf("Replacing text %q with %q\n", original, replacement)
 		return replacement

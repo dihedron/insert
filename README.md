@@ -21,9 +21,9 @@ It provides 4 types of operations:
 3. add a line after each line matching a pattern (```after``` clause);
 4. drop lines matching a pattern (```where``` clause with ```-``` as replacement text).
 
-The ```--once``` flags indicates that the operaton should occur only on the first occurrence of the match; if omitted, each matching line is "edited" as instructed.
+The ```--once``` flags indicates that the operaton should be performed only against the first occurrence of a matching line; if omitted, each matching line is "edited" as instructed.
 
-Replacement text can include substitution anchors, such as ```{1}``` above; it will be substituted with the value of the first capturing group in the pattern (the zero-th being the whole expression unless specified otherwise). 
+Replacement text can include substitution anchors, such as the ```{1}``` in the example above; it will be substituted with the value of the first capturing group in the pattern; if you write a regular expression matching the whole line (e.g. ending with ```.*$```) the zero-th anchor (```{0}```) represents the whole expression. To check how ```put``` interprets your regular expression, see [Debugging](#debugging) below.
 
 ## Example
 
@@ -36,7 +36,7 @@ $ > cat hosts |
         > hosts2
 ```
 
-## Debugging
+## <a name="debugging"></a>Debugging
 
 If you want to see what the command is doing internally, simply run it with the ```PUT_DEBUG``` environment variable set to one of ```debug```, ```info```, ```warning``` or ```error```, e.g. as follows:
 

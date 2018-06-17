@@ -73,8 +73,9 @@ func processStream(args []string, once bool) {
 	re := regexp.MustCompile(args[2])
 
 	scanner := bufio.NewScanner(input)
+	doneOnce := false
 	for scanner.Scan() {
-		if re.MatchString(scanner.Text()) {
+		if re.MatchString(scanner.Text()) && (!once || !doneOnce) {
 			log.Debugf("Input text %q matches pattern", scanner.Text())
 			line := processLine(scanner.Text(), args[0], re)
 			switch op {
@@ -88,23 +89,9 @@ func processStream(args []string, once bool) {
 				fmt.Fprintf(output, "%s\n", line)
 			case OperationDelete:
 			}
-
-			// if placeholders.MatchString(args[2]) {
-			// 	log.Debugf("Replacement text has bindings")
-			// 	// TODO: find all capturing groups in scanner.Text(), then use them to
-			// 	// bind the replacement arguments; this processing is common to all
-			// 	// matching methods so it should be moved to its own method.
-			// 	for _, indexes := range placeholders.FindAllStringSubmatchIndex(args[2], -1) {
-			// 		index, _ := strconv.Atoi(args[2][indexes[2]:indexes[3]])
-			// 		log.Debugf("Match: %q (%d) from %d to %d", args[2][indexes[0]:indexes[1]], index, indexes[0], indexes[1])
-			// 	}
-			// 	//matches := re.FindStringSubmatch(scanner.Text())
-			// } else {
-			// 	log.Debugf("Replacing text %q with %q\n", scanner.Text(), args[2])
-			// 	fmt.Fprintf(output, "%s\n", args[2])
-			// }
+			doneOnce = true
 		} else {
-			log.Debugf("Keeping text %q\n", scanner.Text())
+			log.Debugf("Keeping text as is: %q\n", scanner.Text())
 			fmt.Fprintf(output, "%s\n", scanner.Text())
 		}
 	}

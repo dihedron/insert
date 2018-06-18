@@ -14,7 +14,7 @@ import (
 )
 
 func init() {
-	switch strings.ToLower(os.Getenv("PUT_DEBUG")) {
+	switch strings.ToLower(os.Getenv("INSERT_DEBUG")) {
 	case "debug", "dbg", "d":
 		log.SetLevel(log.DBG)
 	case "informational", "information", "info", "inf", "i":

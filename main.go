@@ -110,7 +110,7 @@ func processStream(args []string, once bool) {
 		log.Debugf("Matching against %q", args[2])
 		re = regexp.MustCompile(args[2])
 	case OperationInsert:
-		log.Debugf("Inserting at index %q", args[2])
+		log.Debugf("Inserting/dropping at index %q", args[2])
 		insertAtIndex, err = strconv.Atoi(strings.TrimSpace(args[2]))
 		if err != nil {
 			log.Fatalf("Error parsing line index: %v", err)
@@ -125,10 +125,15 @@ func processStream(args []string, once bool) {
 	for scanner.Scan() {
 		if op == OperationInsert {
 			if currentIndex == insertAtIndex {
-				fmt.Fprintf(output, "%s\n", args[0])
+				currentIndex++
+				if args[0] == "-" {
+					// skip line (drop it!)
+					continue
+				} else {
+					fmt.Fprintf(output, "%s\n", args[0])
+				}
 			}
 			fmt.Fprintf(output, "%s\n", scanner.Text())
-			currentIndex++
 		} else {
 			if re.MatchString(scanner.Text()) && (!once || !doneOnce) {
 				log.Debugf("Input text %q matches pattern", scanner.Text())

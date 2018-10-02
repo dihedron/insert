@@ -18,7 +18,7 @@ If you added `$GOPATH/bin` to your `$PATH`, the command will be readily availabl
 
 The application can be compiled on all Golang-supported OSs, including most flavours of *nix and Windows (the latter I have not tested, though); it does not require configuration or INI files, libraries, DLLs or Registry keys and can be placed anywhere on your filesystem or on portable USB sticks.
 
-If you want to compress it to save space, you can safely use UPX to do it, like this:
+If you want to compress it to save space, you can safely use [UPX](https://upx.github.io/) to do it, like this:
 
 ```bash
 $ > upx --brute $GOPATH/bin/insert
@@ -32,7 +32,7 @@ $ > upx --brute $GOPATH/bin/insert
 3. insert a line with some text after the matching line
 4. delete the matching line 
    
-Moreover it can be used to insert a line of text at a given (0-based) index. 
+Moreover it can be used to insert or drop a line of text at a given (0-based) index. 
 
 `insert` is meant to be used like this:
 
@@ -45,7 +45,7 @@ $ > cat infile.txt |
         > out.txt 
 ```
 
-The example shows 4 types of operations:
+The example above shows 4 types of operations:
 1. replace lines matching a pattern with other text (`where` clause with replacement text);
 2. add a line before each line matching a pattern (`before` clause);
 3. add a line after each line matching a pattern (`after` clause);
@@ -55,12 +55,21 @@ The `--once` flags indicates that the operaton should be performed only against 
 
 Replacement text can include substitution anchors, such as the `{1}` in the example above; it will be substituted with the value of the first capturing group in the user-provided pattern (regular expression); if you write a regular expression matching the whole line (e.g. ending with `.*$`) the zero-th anchor (`{0}`) represents the whole expression, and the following (`{1}`, `{2}`...) each a pair of capturing brackets (`(...)`). To check how `insert` interprets your regular expression, see [Debugging](#debugging) below.
 
-Last, it can be used to insert a line of text at a specified, 0-based index, e.g.
+Last, it can be used to insert or drop a line of text at a specified 0-based index, e.g.
 
 ```bash
 $ > cat infile.txt | 
         insert "# This comment is inserted between the first and (old) the second line" at 1
 ```
+
+To drop a line, use `-` as the text to insert:
+
+```bash
+$ > cat infile.txt | 
+        insert "-" at 0
+```
+
+will drop the first line.
 
 ## Example
 

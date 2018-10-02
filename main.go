@@ -53,6 +53,8 @@ const (
 	OperationAppend
 	// OperationDelete removes the matching line.
 	OperationDelete
+	// OperationInsert inserts the user provided text at a given line index (0-based).
+	OperationInsert
 	// OperationInvalid means that the operation could not be recognised.
 	OperationInvalid
 )
@@ -68,6 +70,8 @@ func (op operation) String() string {
 		return "<append> (" + strconv.Itoa(int(op)) + ")"
 	case OperationDelete:
 		return "<delete> (" + strconv.Itoa(int(op)) + ")"
+	case OperationInsert:
+		return "<insert> (" + strconv.Itoa(int(op)) + ")"
 	case OperationInvalid:
 		return "<invalid> (" + strconv.Itoa(int(op)) + ")"
 	}
@@ -98,30 +102,53 @@ func processStream(args []string, once bool) {
 	op := getOperation(args)
 	log.Debugf("Operation: %v", op)
 
-	log.Debugf("Matching against %q", args[2])
-	re := regexp.MustCompile(args[2])
+	var re *regexp.Regexp
+	var insertAtIndex int
+
+	switch op {
+	case OperationReplace, OperationPrepend, OperationAppend, OperationDelete:
+		log.Debugf("Matching against %q", args[2])
+		re = regexp.MustCompile(args[2])
+	case OperationInsert:
+		log.Debugf("Inserting at index %q", args[2])
+		insertAtIndex, err = strconv.Atoi(strings.TrimSpace(args[2]))
+		if err != nil {
+			log.Fatalf("Error parsing line index: %v", err)
+		} else if insertAtIndex < 0 {
+			log.Fatalf("Invalid (negative) line index: %d", insertAtIndex)
+		}
+	}
 
 	scanner := bufio.NewScanner(input)
 	doneOnce := false
+	currentIndex := 0
 	for scanner.Scan() {
-		if re.MatchString(scanner.Text()) && (!once || !doneOnce) {
-			log.Debugf("Input text %q matches pattern", scanner.Text())
-			line := processLine(scanner.Text(), args[0], re)
-			switch op {
-			case OperationReplace:
-				fmt.Fprintf(output, "%s\n", line)
-			case OperationPrepend:
-				fmt.Fprintf(output, "%s\n", line)
-				fmt.Fprintf(output, "%s\n", scanner.Text())
-			case OperationAppend:
-				fmt.Fprintf(output, "%s\n", scanner.Text())
-				fmt.Fprintf(output, "%s\n", line)
-			case OperationDelete:
+		if op == OperationInsert {
+			if currentIndex == insertAtIndex {
+				fmt.Fprintf(output, "%s\n", args[0])
 			}
-			doneOnce = true
-		} else {
-			log.Debugf("Keeping text as is: %q\n", scanner.Text())
 			fmt.Fprintf(output, "%s\n", scanner.Text())
+			currentIndex++
+		} else {
+			if re.MatchString(scanner.Text()) && (!once || !doneOnce) {
+				log.Debugf("Input text %q matches pattern", scanner.Text())
+				line := processLine(scanner.Text(), args[0], re)
+				switch op {
+				case OperationReplace:
+					fmt.Fprintf(output, "%s\n", line)
+				case OperationPrepend:
+					fmt.Fprintf(output, "%s\n", line)
+					fmt.Fprintf(output, "%s\n", scanner.Text())
+				case OperationAppend:
+					fmt.Fprintf(output, "%s\n", scanner.Text())
+					fmt.Fprintf(output, "%s\n", line)
+				case OperationDelete:
+				}
+				doneOnce = true
+			} else {
+				log.Debugf("Keeping text as is: %q\n", scanner.Text())
+				fmt.Fprintf(output, "%s\n", scanner.Text())
+			}
 		}
 	}
 	if err := scanner.Err(); err != nil {
@@ -166,6 +193,9 @@ func getOperation(args []string) operation {
 	}
 	if args[1] == "after" {
 		return OperationAppend
+	}
+	if args[1] == "at" {
+		return OperationInsert
 	}
 	log.Fatalf("Unknown clause: %q; valid values include 'where', 'wherever', after' and 'before'")
 	return OperationInvalid

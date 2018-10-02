@@ -1,6 +1,6 @@
 # insert - Yet another stream editor
 
-`insert` is a stream editor with a limited subset of `sed`'s functionalities at a fraction of the complexity and exposed through a modern CLI; it is designed to be used as a shell filter, with readability and simplicity in mind.
+`insert` is a stream editor with a limited subset of `sed`'s functionalities at a fraction of the complexity, exposed through a modern CLI; it is designed to be used as a shell filter, with readability and simplicity in mind.
 
 ## Installation
 

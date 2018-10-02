@@ -127,12 +127,15 @@ func processStream(args []string, once bool) {
 			if currentIndex == insertAtIndex {
 				currentIndex++
 				if args[0] == "-" {
+					log.Debugf("Dropping line at index %d: %q\n", insertAtIndex, scanner.Text())
 					// skip line (drop it!)
 					continue
 				} else {
+					log.Debugf("Inserting %q at index %d\n", args[0], insertAtIndex)
 					fmt.Fprintf(output, "%s\n", args[0])
 				}
 			}
+			log.Debugf("Keeping text as is: %q\n", scanner.Text())
 			fmt.Fprintf(output, "%s\n", scanner.Text())
 		} else {
 			if re.MatchString(scanner.Text()) && (!once || !doneOnce) {

@@ -41,7 +41,7 @@ Moreover it can be used to insert or drop a line of text at a given (0-based) in
 $ > cat infile.txt | 
         put "some replacement text" where "^a\s*line$" | 
         put --once "{1} but not least" before "^and this is the (last)$" |
-        put "some text" after "^yet\s+another\s*line$" |         
+        put "some text" after "^yet\s+another\s*line$" |
         put nil where "^a\s+line\s*to drop$"  
         > out.txt 
 ```
@@ -61,7 +61,7 @@ Last, it can be used to insert or drop a line of text at a specified 0-based ind
 
 ```bash
 $ > cat infile.txt | 
-        put "# This comment is inserted between the first and (old) the second line" at 1
+        put "# This comment is inserted between the first and the (old) second line" at 1
 ```
 
 To drop a line, use `nil` as the text to insert:

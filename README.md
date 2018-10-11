@@ -71,7 +71,14 @@ $ > cat infile.txt |
         put nil at 0
 ```
 
-will drop the first line.
+will drop the first line. `nil` can also be used with pattern matching, e.g.:
+
+```bash
+$ > cat infile.txt | 
+        put nil where "^\s*#.*$"
+```
+
+will remove all bash-style comments from the file.
 
 ## Example
 
@@ -79,7 +86,7 @@ As an example let's take an `/etc/hosts`; say you want to add the host name on t
 
 ```bash
 $ > cat hosts | 
-        put "# {0} (changed on $(date +%Y/%m%d))" before "^(127\.0\.0\.1\s+localhost).*" | 
+        put "# {0} (changed on $(date +%Y/%m/%d))" before "^(127\.0\.0\.1\s+localhost).*" | 
         put "{1} $(hostname)" where "^(127\.0\.0\.1\s+localhost).*" 
         > hosts2
 ```
@@ -101,7 +108,7 @@ ff02::2 ip6-allrouters
 is turned into the following:
 
 ```
-# 127.0.0.1	localhost (changed on 2018/0618)
+# 127.0.0.1	localhost (changed on 2018/06/18)
 127.0.0.1	localhost myhost
 127.0.1.1	myhost.example.com	myhost
 
@@ -133,7 +140,7 @@ If you want to see what the command is doing internally, simply run it with the 
 $ > PUT_DEBUG=debug put [args] < /etc/hosts
 ```
 
-This can be hepful if you need to take a look at the available bindings for your regular expression (`{0}`, `{1}`...) in order to write the correct replacement expression. 
+This can be helpful also if you need to take a look at the available bindings for your regular expression (`{0}`, `{1}`...) in order to write the correct replacement expression. 
 
 ## Suggestions and contributions
 

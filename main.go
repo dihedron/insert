@@ -14,7 +14,7 @@ import (
 )
 
 func init() {
-	switch strings.ToLower(os.Getenv("INSERT_DEBUG")) {
+	switch strings.ToLower(os.Getenv("PUT_DEBUG")) {
 	case "debug", "dbg", "d":
 		log.SetLevel(log.DBG)
 	case "informational", "information", "info", "inf", "i":
@@ -36,6 +36,15 @@ func main() {
 
 	once := flag.Bool("once", false, "whether the instruction should be applied only to the first occurrence")
 	flag.Parse()
+	if len(flag.Args()) < 3 {
+		fmt.Fprintf(os.Stderr, "usage:\n")
+		fmt.Fprintf(os.Stderr, "  put [--once] {<text>|nil} {at <index>|{before|after|where} <pattern>}\n")
+		fmt.Fprintf(os.Stderr, "examples:\n")
+		fmt.Fprintf(os.Stderr, "  put \"some text\" at 0               add a leading line\n")
+		fmt.Fprintf(os.Stderr, "  put nil where \"^#.*$\"              remove all comments\n")
+		fmt.Fprintf(os.Stderr, "  put \"some text\" after \"^#.*$\"      add line after matching lines\n")
+		os.Exit(1)
+	}
 	processStream(flag.Args(), *once)
 
 	//cmd.Execute()
@@ -124,19 +133,22 @@ func processStream(args []string, once bool) {
 	currentIndex := 0
 	for scanner.Scan() {
 		if op == OperationInsert {
+			log.Debugf("Comparing currentIndex (%d) to insertAtIndex (%d)\n", currentIndex, insertAtIndex)
 			if currentIndex == insertAtIndex {
-				currentIndex++
-				if args[0] == "-" {
+				if args[0] == "nil" {
 					log.Debugf("Dropping line at index %d: %q\n", insertAtIndex, scanner.Text())
 					// skip line (drop it!)
+					currentIndex++
 					continue
 				} else {
 					log.Debugf("Inserting %q at index %d\n", args[0], insertAtIndex)
 					fmt.Fprintf(output, "%s\n", args[0])
 				}
 			}
+			currentIndex++
 			log.Debugf("Keeping text as is: %q\n", scanner.Text())
 			fmt.Fprintf(output, "%s\n", scanner.Text())
+
 		} else {
 			if re.MatchString(scanner.Text()) && (!once || !doneOnce) {
 				log.Debugf("Input text %q matches pattern", scanner.Text())
@@ -191,7 +203,7 @@ func getOutput(args []string) (*os.File, error) {
 // later on once the product is sufficiently stable.
 func getOperation(args []string) operation {
 	if args[1] == "where" || args[1] == "wherever" {
-		if args[0] == "-" {
+		if args[0] == "nil" {
 			return OperationDelete
 		}
 		return OperationReplace

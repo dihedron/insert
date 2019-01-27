@@ -3,12 +3,13 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"flag"
 	"fmt"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
+
+	flag "github.com/spf13/pflag"
 
 	log "github.com/dihedron/go-log"
 )
@@ -35,8 +36,9 @@ func init() {
 func main() {
 
 	once := flag.Bool("once", false, "whether the instruction should be applied only to the first occurrence")
+	help := flag.Bool("help", false, "prints help information and quits")
 	flag.Parse()
-	if len(flag.Args()) < 3 {
+	if len(flag.Args()) < 3 || *help {
 		fmt.Fprintf(os.Stderr, "usage:\n")
 		fmt.Fprintf(os.Stderr, "  put [--once] {<text>|nil} {at <index>|{before|after|where} <pattern>}\n")
 		fmt.Fprintf(os.Stderr, "examples:\n")
@@ -260,8 +262,7 @@ func processLine(original string, replacement string, re *regexp.Regexp) string 
 		buffer = buffer + replacement[cursor:]
 		log.Debugf("Temporary buffer at end of line processing: %q", buffer)
 		return buffer
-	} else {
-		log.Debugf("Replacing text %q with %q\n", original, replacement)
-		return replacement
 	}
+	log.Debugf("Replacing text %q with %q\n", original, replacement)
+	return replacement
 }
